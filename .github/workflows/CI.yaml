@@ -76,3 +76,5 @@ jobs:
         echo ${{ steps.copa.outputs.patched-image}}    
         image_name=$(echo ${{ github.event.inputs.image}} | sed -e 's/.*\///g' | sed -e 's/:.*//g')
         echo $image_name
+        image_name2=$(echo ${{ github.event.inputs.image}} | sed -e 's/.*\///g')
+        echo $image_name2
