@@ -44,6 +44,12 @@ jobs:
         ignore-unfixed: true
         #ignore-policy: true
         #github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Trivy Report
+      uses: actions/upload-artifact@v4.0.0
+      with:
+        name: trivy-report
+        path: report.json
     
     - name: Check Vuln Count
       id: vuln_count
