@@ -1,7 +1,5 @@
 name: CI
 on:
-  #push:
-  #  branches: ["main"]
 
   workflow_dispatch:
     inputs:
@@ -70,10 +68,29 @@ jobs:
         image-report: 'report.json'
         patched-tag: 'patched'
 
-    - name: test
+    - name: container image push to ACR
       run: |
-        echo "vuln_count=$vuln_count"
-        echo ${{ steps.copa.outputs.patched-image}}    
         image_name=$(echo ${{ github.event.inputs.image}} | sed -e 's/.*\///g')
         docker tag ${{ steps.copa.outputs.patched-image}} ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/$image_name
         docker push ${{ secrets.AZURE_ACR_NAME }}.azurecr.io/$image_name
+    
+    - name: Get image digest
+      id: digest
+      run : |
+        echo "DIGEST=$(az acr manifest list-metadata -r ${{ secrets.AZURE_ACR_NAME }} -n server --query [].digest -o tsv)" >> $GITHUB_OUTPUT
+
+    - name: setup Notation CLI
+      uses: notaryproject/notation-action/setup@v1
+      with:
+        version: 1.0.0
+    - name: sign releasd artifact with signing plugin
+      uses: notaryproject/notation-action/sign@v1
+      with:
+        plugin_name: azue-kv
+        plugin_url:  https://github.com/Azure/notation-azure-kv/releases/download/v1.0.1/notation-azure-kv_1.0.1_linux_amd64.tar.gz
+        plugin_checksum: f8a75d9234db90069d9eb5660e5374820edf36d710bd063f4ef81e7063d3810b
+        key_id: ${{ secrets.AZURE_KV_NOTATION_KID }}
+        target_artifact_reference: ${{ secrets.AZURE_ACR_NAME }}azurecr.io/server@${{ steps.digest.outputs.DIGEST }} 
+        signature_format: cose
+        plugin_config: |-
+          self_signed=true
