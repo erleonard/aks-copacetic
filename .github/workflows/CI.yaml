@@ -1,0 +1,62 @@
+name: CI
+on:
+  #push:
+  #  branches: ["main"]
+
+  workflow_dispatch:
+    inputs:
+      image:
+        type: string
+        description: Specify container image to scan
+        required: true
+
+permissions:
+      id-token: write
+      contents: read
+      pull-requests: write
+
+jobs:
+  trivy:
+    name: 'Trivy Scan'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4.1.1
+    
+    - name: 'Az CLI login'
+      uses: azure/login@v1
+      with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: trivy
+      uses: aquasecurity/trivy-action@0.16.0
+      with:
+        image-ref: ${{ github.event.inputs.image }}
+        # scan-type: 'image'
+        format: json
+        output: report.json
+        exit-code: 1
+        vuln-type: os
+        severity: CRITICAL
+        ignore-unfixed: true
+        #ignore-policy: true
+        #github-token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Check Vuln Count
+      id: vuln_count
+      run: |
+        report_file="report.json"
+        vuln_count=$(jq '.Results | length' "$report_file")
+        echo "vuln_count=$vuln_count" >> $GITHUB_OUTPUT
+    
+    - name: Copa Action
+      if: steps.vuln_count.outputs.vuln_count != '0'
+      id: copa
+      uses: project-copacetic/copa-action@v1.0.1
+      with:
+        image: ${{ github.event.inputs.image }}
+        image-report: 'report.json'
+        patched-tag: 'patched'
