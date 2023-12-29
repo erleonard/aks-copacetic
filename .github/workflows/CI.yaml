@@ -73,5 +73,6 @@ jobs:
     - name: test
       run: |
         echo "vuln_count=$vuln_count"
-        echo ${{ steps.copa.outputs.patched-image}}
-    
+        echo ${{ steps.copa.outputs.patched-image}}    
+        image_name=$(echo ${{ github.event.inputs.image}} | sed -e 's/.*\///g' | sed -e 's/:.*//g')
+        echo $image_name
