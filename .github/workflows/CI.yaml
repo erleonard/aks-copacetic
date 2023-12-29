@@ -70,7 +70,15 @@ jobs:
         image-report: 'report.json'
         patched-tag: 'patched'
     
+    - name: Extract container image data
+      id: image_data
+      uses: docker/metadata-action
+      with:
+        images: ${{ github.event.inputs.image}}
+
     - name: test
       run: |
         echo "vuln_count=$vuln_count"
         echo ${{ steps.copa.outputs.patched-image}}
+        echo ${{ steps.image_data.outputs.tags}}
+    
