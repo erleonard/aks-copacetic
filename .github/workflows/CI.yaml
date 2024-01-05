@@ -36,7 +36,7 @@ jobs:
       uses: aquasecurity/trivy-action@0.16.0
       with:
         image-ref: ${{ github.event.inputs.image }}
-        # scan-type: 'image'
+        scan-type: 'image'
         format: json
         output: report.json
         exit-code: 1
