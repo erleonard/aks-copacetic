@@ -41,7 +41,7 @@ jobs:
         output: report.json
         exit-code: 1
         vuln-type: os
-        severity: CRITICAL
+        severity: 'CRITICAL,HIGH'
         ignore-unfixed: true
         #ignore-policy: true
         #github-token: ${{ secrets.GITHUB_TOKEN }}
