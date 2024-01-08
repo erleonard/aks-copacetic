@@ -34,7 +34,7 @@ jobs:
       with:
         image-ref: ${{ github.event.inputs.image }}
         scan-type: 'image'
-        format: table
+        format: json
         output: report.json
         exit-code: 1
         vuln-type: os
